@@ -51,12 +51,23 @@ const quickButtons: { label: string; category: ActivityCategory; title: string; 
 ];
 
 function addMinutesToTime(time: string, minutes: number) {
-  const total = (timeToMinutes(time) + minutes) % (24 * 60);
+  const safeTime = normalizeGoalTime(time, '00:00');
+  const total = (timeToMinutes(safeTime) + minutes + 24 * 60) % (24 * 60);
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
+function normalizeGoalTime(time: string, fallback: string) {
+  if (!/^\d{2}:\d{2}$/.test(time)) return fallback;
+  const [hour, minute] = time.split(':').map(Number);
+  if (!Number.isInteger(hour) || !Number.isInteger(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+    return fallback;
+  }
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
 function formatGoalTime(time: string) {
-  const minutes = timeToMinutes(time);
+  const safeTime = normalizeGoalTime(time, '00:00');
+  const minutes = timeToMinutes(safeTime);
   const hour = Math.floor(minutes / 60);
   const minute = minutes % 60;
   const period = hour < 12 ? '오전' : '오후';
@@ -437,18 +448,20 @@ function TimeGoalControl({
   presets: string[];
   onChange: (value: string) => void;
 }) {
+  const fallback = presets[0] ?? '00:00';
+  const safeValue = normalizeGoalTime(value, fallback);
   return (
     <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-950">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
-          <p className="mt-1 text-3xl font-bold text-slate-950 dark:text-white">{formatGoalTime(value)}</p>
+          <p className="mt-1 text-3xl font-bold text-slate-950 dark:text-white">{formatGoalTime(safeValue)}</p>
         </div>
         <div className="flex gap-2">
-          <button className="stepper" type="button" onClick={() => onChange(addMinutesToTime(value, -15))} aria-label={`${label} 15분 앞당기기`}>
+          <button className="stepper" type="button" onClick={() => onChange(addMinutesToTime(safeValue, -15))} aria-label={`${label} 15분 앞당기기`}>
             <Minus size={18} />
           </button>
-          <button className="stepper" type="button" onClick={() => onChange(addMinutesToTime(value, 15))} aria-label={`${label} 15분 늦추기`}>
+          <button className="stepper" type="button" onClick={() => onChange(addMinutesToTime(safeValue, 15))} aria-label={`${label} 15분 늦추기`}>
             <Plus size={18} />
           </button>
         </div>
@@ -457,7 +470,7 @@ function TimeGoalControl({
         {presets.map((preset) => (
           <button
             key={preset}
-            className={`chip ${preset === value ? 'chip-active' : ''}`}
+            className={`chip ${preset === safeValue ? 'chip-active' : ''}`}
             type="button"
             onClick={() => onChange(preset)}
           >
@@ -486,18 +499,31 @@ function NumberGoalControl({
   max: number;
   onChange: (value: number) => void;
 }) {
+  const safeValue = clampNumber(Number.isFinite(value) ? value : min, min, max);
+  const saveNumber = (nextValue: number) => onChange(clampNumber(nextValue, min, max));
+
   return (
     <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-950">
       <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
       <div className="mt-2 flex items-center justify-between gap-3">
-        <button className="stepper" type="button" onClick={() => onChange(clampNumber(value - step, min, max))} aria-label={`${label} 줄이기`}>
+        <button className="stepper" type="button" onClick={() => saveNumber(safeValue - step)} aria-label={`${label} 줄이기`}>
           <Minus size={18} />
         </button>
-        <p className="min-w-0 text-center text-3xl font-bold text-slate-950 dark:text-white">
-          {value}
+        <label className="flex min-w-0 flex-1 items-center justify-center gap-1">
+          <input
+            className="number-goal-input"
+            type="number"
+            inputMode="numeric"
+            min={min}
+            max={max}
+            step={step}
+            value={safeValue}
+            aria-label={label}
+            onChange={(event) => saveNumber(Number(event.target.value))}
+          />
           <span className="ml-1 text-base font-medium text-slate-500 dark:text-slate-400">{unit}</span>
-        </p>
-        <button className="stepper" type="button" onClick={() => onChange(clampNumber(value + step, min, max))} aria-label={`${label} 늘리기`}>
+        </label>
+        <button className="stepper" type="button" onClick={() => saveNumber(safeValue + step)} aria-label={`${label} 늘리기`}>
           <Plus size={18} />
         </button>
       </div>
