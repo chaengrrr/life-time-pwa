@@ -6,6 +6,7 @@ export const defaultGoals: GoalSettings = {
   sleepTime: '23:30',
   weeklyExerciseMinutes: 180,
   weeklyStudyMinutes: 900,
+  weeklySelfDevelopmentMinutes: 300,
   dailyMealCount: 3,
   minimumSleepMinutes: 420,
   updatedAt: new Date().toISOString()

@@ -3,6 +3,7 @@ export type ActivityCategory =
   | 'sleep'
   | 'exercise'
   | 'study'
+  | 'selfDevelopment'
   | 'meal'
   | 'rest'
   | 'free';
@@ -28,6 +29,7 @@ export interface GoalSettings {
   sleepTime: string;
   weeklyExerciseMinutes: number;
   weeklyStudyMinutes: number;
+  weeklySelfDevelopmentMinutes: number;
   dailyMealCount: number;
   minimumSleepMinutes: number;
   updatedAt: string;

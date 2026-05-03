@@ -94,6 +94,11 @@ function clampNumber(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
+function goalProgress(doneMinutes: number, targetMinutes: number) {
+  if (targetMinutes <= 0) return 1;
+  return doneMinutes / targetMinutes;
+}
+
 function useDerived() {
   const store = useLifeStore();
   return useMemo(() => {
@@ -134,7 +139,16 @@ function Dashboard() {
   const meals = dayRecords.filter((r) => r.category === 'meal').length;
   const weekStudy = weekRecords.filter((r) => r.category === 'study').reduce((s, r) => s + r.durationMinutes, 0);
   const weekExercise = weekRecords.filter((r) => r.category === 'exercise').reduce((s, r) => s + r.durationMinutes, 0);
-  const goalRate = goals ? Math.round(((weekStudy / goals.weeklyStudyMinutes + weekExercise / goals.weeklyExerciseMinutes) / 2) * 100) : 0;
+  const weekSelfDevelopment = weekRecords.filter((r) => r.category === 'selfDevelopment').reduce((s, r) => s + r.durationMinutes, 0);
+  const goalRate = goals
+    ? Math.round(
+        ((goalProgress(weekStudy, goals.weeklyStudyMinutes) +
+          goalProgress(weekExercise, goals.weeklyExerciseMinutes) +
+          goalProgress(weekSelfDevelopment, goals.weeklySelfDevelopmentMinutes)) /
+          3) *
+          100
+      )
+    : 0;
   const lineData = recentKeys.map((date) => {
     const day = records.filter((r) => r.date === date);
     return {
@@ -161,6 +175,7 @@ function Dashboard() {
         <Stat label="공부 시간" value={minutesToHours(todayStudy)} />
         <Stat label="운동 시간" value={minutesToHours(todayExercise)} />
         <Stat label="수면 시간" value={minutesToHours(todaySleep)} />
+        <Stat label="주간 자기계발" value={minutesToHours(weekSelfDevelopment)} />
         <Stat label="식사/회고" value={`${meals}회 · ${reflectionDone ? '완료' : '미작성'}`} />
       </div>
       <Card>
@@ -339,9 +354,22 @@ function ReportsPage() {
     const avg = Math.round(times.reduce((s, t) => s + t, 0) / times.length);
     return `${String(Math.floor(avg / 60)).padStart(2, '0')}:${String(avg % 60).padStart(2, '0')}`;
   };
-  const weeklyRate = Math.round(((sum(weekRecords, 'study') / goals.weeklyStudyMinutes + sum(weekRecords, 'exercise') / goals.weeklyExerciseMinutes) / 2) * 100);
+  const weeklyRate = Math.round(
+    ((goalProgress(sum(weekRecords, 'study'), goals.weeklyStudyMinutes) +
+      goalProgress(sum(weekRecords, 'exercise'), goals.weeklyExerciseMinutes) +
+      goalProgress(sum(weekRecords, 'selfDevelopment'), goals.weeklySelfDevelopmentMinutes)) /
+      3) *
+      100
+  );
   const best = weeklyRate >= 80 ? '주간 활동 목표' : weekRecords.filter((r) => r.category === 'meal').length >= goals.dailyMealCount * 4 ? '식사 기록' : '기록 꾸준함';
-  const weak = sum(weekRecords, 'exercise') < goals.weeklyExerciseMinutes ? '운동 목표' : sleepMinutesForDay(weekRecords) / 7 < goals.minimumSleepMinutes ? '수면 시간' : '회고 작성';
+  const weak =
+    sum(weekRecords, 'exercise') < goals.weeklyExerciseMinutes
+      ? '운동 목표'
+      : sum(weekRecords, 'selfDevelopment') < goals.weeklySelfDevelopmentMinutes
+        ? '자기계발 목표'
+        : sleepMinutesForDay(weekRecords) / 7 < goals.minimumSleepMinutes
+          ? '수면 시간'
+          : '회고 작성';
   const comment = weak === '운동 목표'
     ? '운동 목표 달성률이 낮습니다. 다음 주에는 짧은 운동부터 시작해보세요.'
     : '이번 주는 공부 시간이 안정적이지만 수면 시간이 불규칙합니다.';
@@ -357,6 +385,7 @@ function ReportsPage() {
         <div className="grid grid-cols-2 gap-3">
           <Stat label="공부 총합" value={minutesToHours(sum(weekRecords, 'study'))} />
           <Stat label="운동 총합" value={minutesToHours(sum(weekRecords, 'exercise'))} />
+          <Stat label="자기계발 총합" value={minutesToHours(sum(weekRecords, 'selfDevelopment'))} />
           <Stat label="평균 기상" value={avgTime(weekRecords, 'wake')} />
           <Stat label="평균 취침" value={avgTime(weekRecords, 'sleep')} />
           <Stat label="평균 수면" value={minutesToHours(Math.round(sleepMinutesForDay(weekRecords) / 7))} />
@@ -370,6 +399,7 @@ function ReportsPage() {
         <div className="grid grid-cols-2 gap-3">
           <Stat label="월 공부" value={minutesToHours(sum(monthRecords, 'study'))} />
           <Stat label="월 운동" value={minutesToHours(sum(monthRecords, 'exercise'))} />
+          <Stat label="월 자기계발" value={minutesToHours(sum(monthRecords, 'selfDevelopment'))} />
           <Stat label="월 수면" value={minutesToHours(sleepMinutesForDay(monthRecords))} />
           <Stat label="월 생활 점수" value={`${score?.total ?? 0}점`} />
           <Stat label="평균 기상" value={avgTime(monthRecords, 'wake')} />
@@ -636,6 +666,15 @@ function SettingsPage() {
             min={0}
             max={6000}
             onChange={(weeklyStudyMinutes) => void saveGoals({ ...goals, weeklyStudyMinutes })}
+          />
+          <NumberGoalControl
+            label="주간 자기계발 목표"
+            value={goals.weeklySelfDevelopmentMinutes}
+            unit="분"
+            step={60}
+            min={0}
+            max={6000}
+            onChange={(weeklySelfDevelopmentMinutes) => void saveGoals({ ...goals, weeklySelfDevelopmentMinutes })}
           />
           <NumberGoalControl
             label="하루 식사 목표"

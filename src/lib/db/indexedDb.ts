@@ -53,7 +53,11 @@ export const dbApi = {
     return (await dbPromise).delete('records', id);
   },
   async goals() {
-    return ((await dbPromise).get('goals', 'default') as Promise<GoalSettings | undefined>).then((goal) => goal ?? defaultGoals);
+    return ((await dbPromise).get('goals', 'default') as Promise<Partial<GoalSettings> | undefined>).then((goal) => ({
+      ...defaultGoals,
+      ...goal,
+      id: 'default' as const
+    }));
   },
   async saveGoals(goals: GoalSettings) {
     return (await dbPromise).put('goals', goals);
