@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { registerSW } from 'virtual:pwa-register';
 import {
   Activity,
   BarChart3,
@@ -26,6 +27,20 @@ import { calculateLifeScore } from '../lib/score/lifeScore';
 import { chartColors, categoryColors, categoryLabels } from '../lib/records/category';
 import { createBackup, downloadJson, parseBackup } from '../lib/export/backup';
 import { dateKeysBetween, inDateRange, minutesToHours, monthRange, nowTime, sleepMinutesForDay, timeToMinutes, todayKey, toDisplayDate, weekRange } from '../lib/date/time';
+
+registerSW({
+  immediate: true,
+  onRegisteredSW(_swUrl, registration) {
+    if (!registration) return;
+    void registration.update();
+    setInterval(() => {
+      void registration.update();
+    }, 60 * 60 * 1000);
+  },
+  onNeedRefresh() {
+    window.location.reload();
+  }
+});
 
 type Tab = 'dashboard' | 'records' | 'reports' | 'templates' | 'settings';
 
