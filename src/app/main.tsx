@@ -25,7 +25,7 @@ import type { ActivityCategory, ActivityRecord, Reflection, RoutineTemplate } fr
 import { calculateLifeScore } from '../lib/score/lifeScore';
 import { chartColors, categoryColors, categoryLabels } from '../lib/records/category';
 import { createBackup, downloadJson, parseBackup } from '../lib/export/backup';
-import { dateKeysBetween, inDateRange, minutesToHours, monthRange, nowTime, sleepMinutesForDay, timeToMinutes, todayKey, weekRange } from '../lib/date/time';
+import { dateKeysBetween, inDateRange, minutesToHours, monthRange, nowTime, sleepMinutesForDay, timeToMinutes, todayKey, toDisplayDate, weekRange } from '../lib/date/time';
 
 type Tab = 'dashboard' | 'records' | 'reports' | 'templates' | 'settings';
 
@@ -437,6 +437,58 @@ function ReflectionBox() {
   );
 }
 
+function ReflectionHistory() {
+  const { reflections } = useLifeStore();
+  const dailyReflections = reflections
+    .filter((reflection) => reflection.type === 'daily')
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  return (
+    <Card>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <h2 className="font-semibold">회고 기록</h2>
+          <p className="mt-1 text-sm text-slate-400">최근 작성한 하루 회고</p>
+        </div>
+        <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-600 dark:bg-blue-950 dark:text-blue-100">
+          {dailyReflections.length}개
+        </span>
+      </div>
+      {dailyReflections.length === 0 ? (
+        <Empty text="저장된 회고가 아직 없습니다." />
+      ) : (
+        <div className="space-y-3">
+          {dailyReflections.slice(0, 14).map((reflection) => (
+            <article key={reflection.id} className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-950">
+              <p className="text-sm font-semibold text-blue-600 dark:text-blue-200">{toDisplayDate(reflection.date)}</p>
+              <div className="mt-3 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                {reflection.good && (
+                  <div>
+                    <p className="font-semibold text-slate-900 dark:text-white">잘한 점</p>
+                    <p>{reflection.good}</p>
+                  </div>
+                )}
+                {reflection.regret && (
+                  <div>
+                    <p className="font-semibold text-slate-900 dark:text-white">아쉬운 점</p>
+                    <p>{reflection.regret}</p>
+                  </div>
+                )}
+                {reflection.tomorrow && (
+                  <div>
+                    <p className="font-semibold text-slate-900 dark:text-white">내일 할 일</p>
+                    <p>{reflection.tomorrow}</p>
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function TimeGoalControl({
   label,
   value,
@@ -591,6 +643,7 @@ function SettingsPage() {
         </div>
       </Card>
       <ReflectionBox />
+      <ReflectionHistory />
       <Card>
         <h2 className="mb-3 font-semibold">Notion 연동</h2>
         <p className="mb-3 text-xs text-amber-700">임시로 로컬에 토큰을 저장합니다. 실제 서비스에서는 사용자 계정/서버 저장소로 옮겨야 합니다.</p>
