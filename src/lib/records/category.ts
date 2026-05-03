@@ -11,21 +11,21 @@ export const categoryLabels: Record<ActivityCategory, string> = {
 };
 
 export const categoryColors: Record<ActivityCategory, string> = {
-  wake: 'bg-amber-100 text-amber-900 border-amber-200',
-  sleep: 'bg-indigo-100 text-indigo-900 border-indigo-200',
-  exercise: 'bg-emerald-100 text-emerald-900 border-emerald-200',
-  study: 'bg-sky-100 text-sky-900 border-sky-200',
-  meal: 'bg-rose-100 text-rose-900 border-rose-200',
-  rest: 'bg-violet-100 text-violet-900 border-violet-200',
-  free: 'bg-slate-100 text-slate-900 border-slate-200'
+  wake: 'bg-slate-50 text-slate-700 border-slate-200',
+  sleep: 'bg-blue-50 text-blue-700 border-blue-100',
+  exercise: 'bg-slate-100 text-slate-800 border-slate-200',
+  study: 'bg-blue-50 text-blue-700 border-blue-100',
+  meal: 'bg-slate-50 text-slate-700 border-slate-200',
+  rest: 'bg-slate-50 text-slate-600 border-slate-200',
+  free: 'bg-white text-slate-700 border-slate-200'
 };
 
 export const chartColors: Record<ActivityCategory, string> = {
-  wake: '#d97706',
-  sleep: '#4f46e5',
-  exercise: '#059669',
-  study: '#0284c7',
-  meal: '#e11d48',
-  rest: '#7c3aed',
+  wake: '#94a3b8',
+  sleep: '#2563eb',
+  exercise: '#64748b',
+  study: '#3b82f6',
+  meal: '#cbd5e1',
+  rest: '#e2e8f0',
   free: '#475569'
 };

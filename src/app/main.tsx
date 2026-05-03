@@ -83,20 +83,20 @@ function useDerived() {
 }
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <section className={`rounded-lg border border-slate-200 bg-white p-4 shadow-soft dark:border-slate-800 dark:bg-slate-900 ${className}`}>{children}</section>;
+  return <section className={`rounded-3xl border border-slate-200/80 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.04)] dark:border-slate-800 dark:bg-slate-900 ${className}`}>{children}</section>;
 }
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <Card className="min-h-24">
-      <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-ink dark:text-white">{value}</p>
+    <Card className="min-h-28">
+      <p className="text-sm font-medium text-slate-400 dark:text-slate-500">{label}</p>
+      <p className="mt-3 text-3xl font-bold tracking-normal text-slate-950 dark:text-white">{value}</p>
     </Card>
   );
 }
 
 function Empty({ text }: { text: string }) {
-  return <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 dark:border-slate-700">{text}</div>;
+  return <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">{text}</div>;
 }
 
 function Dashboard() {
@@ -229,11 +229,11 @@ function Timeline() {
   return (
     <Card>
       <h2 className="mb-3 font-semibold">일간 타임라인</h2>
-      {overlaps.length > 0 && <p className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">겹치는 기록이 있습니다. 시간을 확인하세요.</p>}
+      {overlaps.length > 0 && <p className="mb-3 rounded-2xl bg-red-50 p-4 text-sm font-medium text-red-600 dark:bg-red-950 dark:text-red-200">겹치는 기록이 있습니다. 시간을 확인하세요.</p>}
       {dayRecords.length === 0 ? <Empty text="기록을 추가하면 하루 흐름이 표시됩니다." /> : (
         <div className="space-y-2">
           {dayRecords.map((record) => (
-            <div key={record.id} className={`rounded-lg border p-3 ${categoryColors[record.category]}`}>
+            <div key={record.id} className={`rounded-2xl border p-4 ${categoryColors[record.category]}`}>
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="font-semibold">{record.title}</p>
@@ -244,7 +244,7 @@ function Timeline() {
               {record.memo && <p className="mt-2 text-sm opacity-80">{record.memo}</p>}
             </div>
           ))}
-          {gaps.length > 0 && <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">{gaps.join(' · ')}</div>}
+          {gaps.length > 0 && <div className="rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-500 dark:bg-slate-800 dark:text-slate-300">{gaps.join(' · ')}</div>}
         </div>
       )}
     </Card>
@@ -336,7 +336,7 @@ function ReportsPage() {
           <Stat label="평균 수면" value={minutesToHours(Math.round(sleepMinutesForDay(weekRecords) / 7))} />
           <Stat label="식사 횟수" value={`${sum(weekRecords, 'meal') ? weekRecords.filter((r) => r.category === 'meal').length : 0}회`} />
         </div>
-        <p className="mt-4 rounded-lg bg-teal-50 p-3 text-sm text-teal-900">목표 달성률 {Math.min(weeklyRate, 100)}% · 가장 잘 지킨 목표: {best} · 부족한 목표: {weak}</p>
+        <p className="mt-4 rounded-2xl bg-blue-50 p-4 text-sm font-medium leading-6 text-blue-700 dark:bg-blue-950 dark:text-blue-100">목표 달성률 {Math.min(weeklyRate, 100)}% · 가장 잘 지킨 목표: {best} · 부족한 목표: {weak}</p>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{comment}</p>
       </Card>
       <Card>
@@ -364,7 +364,7 @@ function TemplatesPage() {
         <h2 className="mb-3 font-semibold">루틴 템플릿</h2>
         <div className="space-y-3">
           {templates.map((template) => (
-            <div key={template.id} className="rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+            <div key={template.id} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-950">
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <p className="font-semibold">{template.name}</p>
@@ -376,7 +376,7 @@ function TemplatesPage() {
                 </div>
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
-                {template.items.map((item) => <span key={item.id} className={`rounded-full border px-2 py-1 text-xs ${categoryColors[item.category]}`}>{item.startTime} {item.title}</span>)}
+                {template.items.map((item) => <span key={item.id} className={`rounded-full border px-3 py-1.5 text-xs font-medium ${categoryColors[item.category]}`}>{item.startTime} {item.title}</span>)}
               </div>
             </div>
           ))}
@@ -438,11 +438,11 @@ function TimeGoalControl({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+    <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-950">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-ink dark:text-white">{formatGoalTime(value)}</p>
+          <p className="mt-1 text-3xl font-bold text-slate-950 dark:text-white">{formatGoalTime(value)}</p>
         </div>
         <div className="flex gap-2">
           <button className="stepper" type="button" onClick={() => onChange(addMinutesToTime(value, -15))} aria-label={`${label} 15분 앞당기기`}>
@@ -487,13 +487,13 @@ function NumberGoalControl({
   onChange: (value: number) => void;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+    <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-950">
       <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
       <div className="mt-2 flex items-center justify-between gap-3">
         <button className="stepper" type="button" onClick={() => onChange(clampNumber(value - step, min, max))} aria-label={`${label} 줄이기`}>
           <Minus size={18} />
         </button>
-        <p className="min-w-0 text-center text-2xl font-semibold text-ink dark:text-white">
+        <p className="min-w-0 text-center text-3xl font-bold text-slate-950 dark:text-white">
           {value}
           <span className="ml-1 text-base font-medium text-slate-500 dark:text-slate-400">{unit}</span>
         </p>
@@ -580,7 +580,7 @@ function SettingsPage() {
         <h2 className="mb-3 font-semibold">네이버 캘린더</h2>
         <div className="mb-3 flex flex-wrap gap-2">
           {(['study', 'exercise', 'meal', 'sleep'] as ActivityCategory[]).map((category) => (
-            <label key={category} className="rounded-full border px-3 py-1 text-sm">
+            <label key={category} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium dark:border-slate-700 dark:bg-slate-900">
               <input className="mr-2" type="checkbox" checked={integrations.naver.syncCategories.includes(category)} onChange={(e) => {
                 const next = e.target.checked ? [...integrations.naver.syncCategories, category] : integrations.naver.syncCategories.filter((c) => c !== category);
                 void saveIntegrations({ ...integrations, naver: { ...integrations.naver, syncCategories: next } });
@@ -608,7 +608,7 @@ function SettingsPage() {
           <button className="danger" onClick={() => { if (confirm('전체 데이터를 초기화할까요?')) void clearAll(); }}><Trash2 size={16} /> 전체 초기화</button>
         </div>
       </Card>
-      {message && <p className="rounded-lg bg-slate-100 p-3 text-sm dark:bg-slate-800">{message}</p>}
+      {message && <p className="rounded-2xl bg-blue-50 p-4 text-sm font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-100">{message}</p>}
     </div>
   );
 }
@@ -625,12 +625,12 @@ function App() {
   }, [darkMode]);
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 text-ink dark:bg-slate-950 dark:text-slate-100">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
+    <div className="min-h-screen bg-[#f6f7f9] pb-28 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
+      <header className="sticky top-0 z-10 border-b border-slate-200/70 bg-[#f6f7f9]/90 px-5 py-5 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/90">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold">생활기록</h1>
-            <p className="text-sm text-slate-500">시간관리 · 회고 · 리포트</p>
+            <h1 className="text-2xl font-bold tracking-normal">생활기록</h1>
+            <p className="mt-1 text-sm font-medium text-slate-400">시간관리 · 회고 · 리포트</p>
           </div>
           <button
             className="icon"
@@ -643,7 +643,7 @@ function App() {
           </button>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-4 py-4">
+      <main className="mx-auto max-w-3xl space-y-5 px-5 py-6">
         {loading && <Card>불러오는 중...</Card>}
         {error && <Card className="text-red-600">{error}</Card>}
         {!loading && tab === 'dashboard' && <Dashboard />}
@@ -652,8 +652,8 @@ function App() {
         {!loading && tab === 'templates' && <TemplatesPage />}
         {!loading && tab === 'settings' && <SettingsPage />}
       </main>
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white px-2 pb-[env(safe-area-inset-bottom)] pt-2 dark:border-slate-800 dark:bg-slate-900">
-        <div className="mx-auto grid max-w-3xl grid-cols-5 gap-1">
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200/70 bg-white/95 px-3 pb-[env(safe-area-inset-bottom)] pt-3 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95">
+        <div className="mx-auto grid max-w-3xl grid-cols-5 gap-2">
           {tabs.map(({ id, label, icon: Icon }) => (
             <button key={id} className={`tab ${tab === id ? 'tab-active' : ''}`} onClick={() => setTab(id)}>
               <Icon size={20} />
