@@ -9,10 +9,12 @@ import {
   Database,
   FileDown,
   Home,
+  Minus,
   Moon,
   Plus,
   RefreshCw,
   Settings,
+  Sun,
   Trash2
 } from 'lucide-react';
 import { Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -51,6 +53,19 @@ const quickButtons: { label: string; category: ActivityCategory; title: string; 
 function addMinutesToTime(time: string, minutes: number) {
   const total = (timeToMinutes(time) + minutes) % (24 * 60);
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
+function formatGoalTime(time: string) {
+  const minutes = timeToMinutes(time);
+  const hour = Math.floor(minutes / 60);
+  const minute = minutes % 60;
+  const period = hour < 12 ? '오전' : '오후';
+  const displayHour = hour % 12 || 12;
+  return `${period} ${String(displayHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
 }
 
 function useDerived() {
@@ -280,7 +295,7 @@ function RecordsPage() {
               <p className="font-medium">{record.title}</p>
               <p className="text-sm text-slate-500">{record.startTime}-{record.endTime}</p>
             </button>
-            <button className="icon" onClick={() => void deleteRecord(record.id)} aria-label="삭제"><Trash2 size={18} /></button>
+            <button className="icon" type="button" onClick={() => void deleteRecord(record.id)} aria-label="삭제"><Trash2 size={18} /></button>
           </div>
         ))}
       </Card>
@@ -356,8 +371,8 @@ function TemplatesPage() {
                   <p className="text-sm text-slate-500">{template.items.length}개 계획</p>
                 </div>
                 <div className="flex gap-2">
-                  <button className="icon" onClick={() => void applyTemplate(template, selectedDate)} aria-label="적용"><Check size={18} /></button>
-                  {!['weekday', 'weekend', 'exam', 'exercise-focus'].includes(template.id) && <button className="icon" onClick={() => void deleteTemplate(template.id)} aria-label="삭제"><Trash2 size={18} /></button>}
+                  <button className="icon" type="button" onClick={() => void applyTemplate(template, selectedDate)} aria-label="적용"><Check size={18} /></button>
+                  {!['weekday', 'weekend', 'exam', 'exercise-focus'].includes(template.id) && <button className="icon" type="button" onClick={() => void deleteTemplate(template.id)} aria-label="삭제"><Trash2 size={18} /></button>}
                 </div>
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -411,6 +426,85 @@ function ReflectionBox() {
   );
 }
 
+function TimeGoalControl({
+  label,
+  value,
+  presets,
+  onChange
+}: {
+  label: string;
+  value: string;
+  presets: string[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
+          <p className="mt-1 text-2xl font-semibold text-ink dark:text-white">{formatGoalTime(value)}</p>
+        </div>
+        <div className="flex gap-2">
+          <button className="stepper" type="button" onClick={() => onChange(addMinutesToTime(value, -15))} aria-label={`${label} 15분 앞당기기`}>
+            <Minus size={18} />
+          </button>
+          <button className="stepper" type="button" onClick={() => onChange(addMinutesToTime(value, 15))} aria-label={`${label} 15분 늦추기`}>
+            <Plus size={18} />
+          </button>
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-4 gap-2">
+        {presets.map((preset) => (
+          <button
+            key={preset}
+            className={`chip ${preset === value ? 'chip-active' : ''}`}
+            type="button"
+            onClick={() => onChange(preset)}
+          >
+            {preset}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NumberGoalControl({
+  label,
+  value,
+  unit,
+  step,
+  min,
+  max,
+  onChange
+}: {
+  label: string;
+  value: number;
+  unit: string;
+  step: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <button className="stepper" type="button" onClick={() => onChange(clampNumber(value - step, min, max))} aria-label={`${label} 줄이기`}>
+          <Minus size={18} />
+        </button>
+        <p className="min-w-0 text-center text-2xl font-semibold text-ink dark:text-white">
+          {value}
+          <span className="ml-1 text-base font-medium text-slate-500 dark:text-slate-400">{unit}</span>
+        </p>
+        <button className="stepper" type="button" onClick={() => onChange(clampNumber(value + step, min, max))} aria-label={`${label} 늘리기`}>
+          <Plus size={18} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SettingsPage() {
   const { goals, saveGoals, integrations, saveIntegrations, importBackup, clearAll, records, reflections } = useLifeStore();
   const [message, setMessage] = useState('');
@@ -419,13 +513,55 @@ function SettingsPage() {
     <div className="space-y-4">
       <Card>
         <h2 className="mb-3 font-semibold">목표 설정</h2>
-        <div className="grid gap-2">
-          <label className="label">목표 기상 <input className="input" type="time" value={goals.wakeTime} onChange={(e) => void saveGoals({ ...goals, wakeTime: e.target.value })} /></label>
-          <label className="label">목표 취침 <input className="input" type="time" value={goals.sleepTime} onChange={(e) => void saveGoals({ ...goals, sleepTime: e.target.value })} /></label>
-          <label className="label">주간 운동 목표(분) <input className="input" type="number" value={goals.weeklyExerciseMinutes} onChange={(e) => void saveGoals({ ...goals, weeklyExerciseMinutes: Number(e.target.value) })} /></label>
-          <label className="label">주간 공부 목표(분) <input className="input" type="number" value={goals.weeklyStudyMinutes} onChange={(e) => void saveGoals({ ...goals, weeklyStudyMinutes: Number(e.target.value) })} /></label>
-          <label className="label">하루 식사 목표 <input className="input" type="number" value={goals.dailyMealCount} onChange={(e) => void saveGoals({ ...goals, dailyMealCount: Number(e.target.value) })} /></label>
-          <label className="label">최소 수면(분) <input className="input" type="number" value={goals.minimumSleepMinutes} onChange={(e) => void saveGoals({ ...goals, minimumSleepMinutes: Number(e.target.value) })} /></label>
+        <div className="grid gap-3">
+          <TimeGoalControl
+            label="목표 기상"
+            value={goals.wakeTime}
+            presets={['06:00', '06:30', '07:00', '07:30', '08:00', '08:30', '09:00', '09:30']}
+            onChange={(wakeTime) => void saveGoals({ ...goals, wakeTime })}
+          />
+          <TimeGoalControl
+            label="목표 취침"
+            value={goals.sleepTime}
+            presets={['21:30', '22:00', '22:30', '23:00', '23:30', '00:00', '00:30', '01:00']}
+            onChange={(sleepTime) => void saveGoals({ ...goals, sleepTime })}
+          />
+          <NumberGoalControl
+            label="주간 운동 목표"
+            value={goals.weeklyExerciseMinutes}
+            unit="분"
+            step={30}
+            min={0}
+            max={2000}
+            onChange={(weeklyExerciseMinutes) => void saveGoals({ ...goals, weeklyExerciseMinutes })}
+          />
+          <NumberGoalControl
+            label="주간 공부 목표"
+            value={goals.weeklyStudyMinutes}
+            unit="분"
+            step={60}
+            min={0}
+            max={6000}
+            onChange={(weeklyStudyMinutes) => void saveGoals({ ...goals, weeklyStudyMinutes })}
+          />
+          <NumberGoalControl
+            label="하루 식사 목표"
+            value={goals.dailyMealCount}
+            unit="회"
+            step={1}
+            min={0}
+            max={6}
+            onChange={(dailyMealCount) => void saveGoals({ ...goals, dailyMealCount })}
+          />
+          <NumberGoalControl
+            label="최소 수면"
+            value={goals.minimumSleepMinutes}
+            unit="분"
+            step={30}
+            min={0}
+            max={900}
+            onChange={(minimumSleepMinutes) => void saveGoals({ ...goals, minimumSleepMinutes })}
+          />
         </div>
       </Card>
       <ReflectionBox />
@@ -480,7 +616,14 @@ function SettingsPage() {
 function App() {
   const { init, loading, error } = useLifeStore();
   const [tab, setTab] = useState<Tab>('dashboard');
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('life-dark-mode') === 'true');
+
   useEffect(() => { void init(); }, [init]);
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('life-dark-mode', String(darkMode));
+  }, [darkMode]);
+
   return (
     <div className="min-h-screen bg-slate-50 pb-24 text-ink dark:bg-slate-950 dark:text-slate-100">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
@@ -489,7 +632,15 @@ function App() {
             <h1 className="text-xl font-bold">생활기록</h1>
             <p className="text-sm text-slate-500">시간관리 · 회고 · 리포트</p>
           </div>
-          <Moon size={20} />
+          <button
+            className="icon"
+            type="button"
+            title={darkMode ? '라이트 모드' : '다크 모드'}
+            aria-label={darkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
+            onClick={() => setDarkMode((value) => !value)}
+          >
+            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 py-4">

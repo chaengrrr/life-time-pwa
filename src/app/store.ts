@@ -45,7 +45,7 @@ export const useLifeStore = create<LifeState>((set, get) => ({
     }
   },
   async refresh() {
-    set({ loading: true, error: undefined });
+    set({ error: undefined });
     const [records, goals, reflections, templates, integrations] = await Promise.all([
       dbApi.allRecords(),
       dbApi.goals(),
